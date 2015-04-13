@@ -46,7 +46,7 @@ stochastic.block = function(n, k = 2, p.diff, p.between, ind = c(0, floor(n/2), 
 
 # Example 1: a block model with 3 blocks, 1000 nodes, inner block probability = 0.10, between block probability = 0.05
 
-Adjacency <- stochastic.block(1000, 3, 0.05, 0.05, ind = c(0,300, 600, 1000))
+Adjacency <- stochastic.block(1000, 3, 0.10, 0.05, ind = c(0,300, 600, 1000))
 
 image(Adjacency)
 

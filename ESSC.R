@@ -11,12 +11,12 @@ ESSC = function(Adj.Matrix,alpha, Null = "Binomial", Num.Samples = nrow(Adj.Matr
     degrees <- rowSums(Adj.Matrix)
     n <- length(degrees)
     index <- 1:dim(Adj.Matrix)[1]
-    extractFrom <- sample(index,Num.Samples,replace = FALSE)
+    extractFrom <- sample(index, Num.Samples, replace = FALSE)
     
     #initialize
     Community <- rep(list(NULL),Num.Samples)
     unq <- TRUE
-    nodes <- matrix(0,2,Num.Samples)
+    nodes <- matrix(0, 2, Num.Samples)
     nodes[1, ] <- extractFrom
     which_match <- 0
 
@@ -74,42 +74,54 @@ Main.Search = function(Adj.Matrix,alpha,B0, Null){
     #Function for checking equality of matrices 
     vectorequal = function(x,y){
         is.numeric(x) && is.numeric(y) && length(x) == length(y) && all(x==y)
-    }
-    #cat("###### Starting Main.Search Loop ######\n")
+      }
+    
     while(vectorequal(B0,B1) == FALSE & j <= 30){
-        
-        j <- j + 1
-        if(j < 5||j%%5==0)
-           #cat(paste("iteration",j,"\n"))
-        if(j > 1)
-            B0 <- B1
-	  if(length(B0)>1)
-	        duBs <- rowSums(Adj.Matrix[, B0])        
-	  if(length(B0)==1)
-		  duBs <- Adj.Matrix[, B0]
-        pB <- sum(degrees[B0])/sum(degrees) #probability of connection to B
-        if(Null == "Binomial")
-            pvals <- pbinom(duBs,degrees,pB,lower.tail = FALSE)
-        if(Null == "Poisson")
-            pvals <- ppois(duBs,degrees*pB,lower.tail = FALSE)
-        pvals[degrees==0] <- 1
-        #cat(paste0("length pvals is ",length(pvals),"; mean is ",round(mean(pvals),2),"\n"))
-        pvals_bh <- pvals*n/rank(pvals)
-        if(sum(pvals_bh <= alpha) == 0)
-        {
+      j <- j + 1
+      
+      if(j > 1){
+        B0 <- B1
+        }
+           
+	    if(length(B0) > 1){
+	      duBs <- rowSums(Adj.Matrix[, B0])   
+	      }
+	             
+	    if(length(B0) == 1){
+	      duBs <- Adj.Matrix[, B0]
+	      }
+      pB <- sum(degrees[B0])/sum(degrees) #probability of connection to B
+      
+      if(Null == "Binomial"){
+        pvals <- pbinom(duBs,degrees,pB,lower.tail = FALSE)
+        }
+            
+      if(Null == "Poisson"){
+        pvals <- ppois(duBs,degrees*pB,lower.tail = FALSE)
+        }
+            
+      pvals[degrees==0] <- 1
+      
+      #Benjamini Hochberg correction
+      pvals_bh <- pvals * n / rank(pvals)
+      
+      if(sum(pvals_bh <= alpha) == 0){
           B1 <- integer(0)
-          #cat("B1 reached size 0 in Main.Search\n")
           break
         }
-        threshold <- max(pvals[pvals_bh<=alpha])
-        B1 <- which(pvals<=threshold)
-        if(length(B1) <1 ){break}
+      
+    threshold <- max(pvals[pvals_bh <= alpha])
+    B1 <- which(pvals <= threshold)
+    
+    #If the community is empty, break the loop
+    if(length(B1) < 1){
+      break
+      }
     }
     Community <- B1
     if(j > 30){
-        #cat("Main.Search failed to converge before 30 iterations\n")
         Community <- integer(0)
-    }
+      }
     return(list(Community = Community))
 }
 

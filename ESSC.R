@@ -76,26 +76,27 @@ Main.Search = function(Adj.Matrix,alpha,B0, Null){
         is.numeric(x) && is.numeric(y) && length(x) == length(y) && all(x==y)
       }
     
-    while(vectorequal(B0,B1) == FALSE & j <= 30){
+    while(vectorequal(B0, B1) == FALSE & j <= 30){
       j <- j + 1
       
       if(j > 1){
         B0 <- B1
         }
-           
-	    if(length(B0) > 1){
+      
+      if(length(B0) > 1){
 	      duBs <- rowSums(Adj.Matrix[, B0])   
 	      }
-	             
-	    if(length(B0) == 1){
+      
+      if(length(B0) == 1){
 	      duBs <- Adj.Matrix[, B0]
-	      }
+      }
+      
       pB <- sum(degrees[B0])/sum(degrees) #probability of connection to B
       
       if(Null == "Binomial"){
         pvals <- pbinom(duBs,degrees,pB,lower.tail = FALSE)
         }
-            
+      
       if(Null == "Poisson"){
         pvals <- ppois(duBs,degrees*pB,lower.tail = FALSE)
         }
@@ -104,7 +105,7 @@ Main.Search = function(Adj.Matrix,alpha,B0, Null){
       
       #Benjamini Hochberg correction
       pvals_bh <- pvals * n / rank(pvals)
-      
+
       if(sum(pvals_bh <= alpha) == 0){
           B1 <- integer(0)
           break

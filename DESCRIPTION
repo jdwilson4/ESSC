@@ -1,0 +1,17 @@
+Package: ESSC
+Title: Extraction of Statistically Significant Communities
+Version: 0.0.0.9000
+Date: 2016-01-04
+Author: James Wilson
+Maintainer: <jdwilson4@usfca.edu>
+Description: Function essc identifies statistically significant communities in
+    undirected networks. Function stochastic.block() generates a realization of
+    the stochastic block model.
+License: GPL (>= 2)
+Depends:
+    R (>= 3.1.2)
+Imports:
+    Matrix,
+    Rlab
+LazyData: true
+RoxygenNote: 5.0.1.9000

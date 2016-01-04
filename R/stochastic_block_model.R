@@ -65,6 +65,7 @@ stochastic.block = function(n, k = 2, P, sizes, random.community.assignment = c(
     for(i in 1:k){
       index[[i]] <- sample(possible, sizes[i])
       possible <- setdiff(possible, index[[i]])
+      Membership[index[[i]]] <- i
     }
   }
   

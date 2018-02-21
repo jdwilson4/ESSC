@@ -91,7 +91,7 @@ essc = function(Adj.Matrix, alpha, Null = c("Binomial", "Poisson"), Num.Samples 
         
     
     return(list(Communities = Community, Background = Background, 
-                PValues = normalized_pvals))
+                PValues = as.matrix(normalized_pvals)))
 }
 
 ###Single Search Function
@@ -141,7 +141,7 @@ Main.Search = function(Adj.Matrix,alpha,B0, Null){
         #cat("Main.Search failed to converge before 30 iterations\n")
         Community <- integer(0)
     }
-    return(list(Community = Community, PValues = as.matrix(pvals_bh)))
+    return(list(Community = Community, PValues = pvals_bh))
 }
 
 

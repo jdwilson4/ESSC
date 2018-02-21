@@ -10,6 +10,7 @@
 #' \itemize{
 #'    \item Communities: a list of identified communities
 #'    \item Background: a numeric vector identifying vertices that did not belong to any statistically significant community
+#'    \item PValues: a n x k matrix whose (i,j)th entry is the Benjamini-Hochberg adjusted p-value expressing connectivity of node i to community j
 #' }
 #'@references
 #'\itemize{
@@ -29,12 +30,13 @@ essc = function(Adj.Matrix, alpha, Null = c("Binomial", "Poisson"), Num.Samples 
     degrees <- rowSums(Adj.Matrix)
     n <- length(degrees)
     index <- 1:dim(Adj.Matrix)[1]
-    extractFrom <- sample(index,Num.Samples,replace = FALSE)
+    extractFrom <- sample(index, Num.Samples, replace = FALSE)
     
     #initialize
-    Community <- rep(list(NULL),Num.Samples)
+    Community <- rep(list(NULL), Num.Samples)
+    pvals <- rep(list(NULL), Num.Samples)
     unq <- TRUE
-    nodes <- matrix(0,2,Num.Samples)
+    nodes <- matrix(0, 2, Num.Samples)
     nodes[1, ] <- extractFrom
     which_match <- 0
 
@@ -54,7 +56,7 @@ essc = function(Adj.Matrix, alpha, Null = c("Binomial", "Poisson"), Num.Samples 
                 unq <- TRUE
                 which_match <- 0
                 for(j in 1: i){
-                    if(length(symdiff(Community[[j]],temp$Community)) == 0){
+                    if(length(symdiff(Community[[j]], temp$Community)) == 0){
                         unq <- FALSE
                         which_match <- j
                     }
@@ -62,6 +64,7 @@ essc = function(Adj.Matrix, alpha, Null = c("Binomial", "Poisson"), Num.Samples 
             }
             if(unq){
                 Community[[i]] <- temp$Community
+                pvals[[i]] <- temp$PValues
                 nodes[2, count] <- i
                 i = i+1
             } else{
@@ -72,13 +75,23 @@ essc = function(Adj.Matrix, alpha, Null = c("Binomial", "Poisson"), Num.Samples 
         }
     }
     
-    Community <- Community[unlist(lapply(Community,function(comm)length(comm)>0))]
-    Background <- setdiff(1:n,unlist(Community))
+    Community <- Community[unlist(lapply(Community, function(comm) length(comm) > 0))]
+    Background <- setdiff(1:n, unlist(Community))
+    pvals <- pvals[unlist(lapply(pvals, function(comm) length(comm) > 0))]
+    pvals <- matrix(unlist(pvals), nrow = n, byrow = T)
     
-    if(length(Community) == 0)
-        Community <- list(NULL)
+    #divide each of these by the sum of the p-values for each community
+    tot.values <- rowSums(pvals)
+    normalized_pvals <- pvals / tot.values
     
-    return(list(Communities = Community, Background = Background))
+    if(length(Community) == 0){
+      Community <- list(NULL)
+      pvals <- NULL
+    }
+        
+    
+    return(list(Communities = Community, Background = Background, 
+                PValues = normalized_pvals))
 }
 
 ###Single Search Function
@@ -101,16 +114,16 @@ Main.Search = function(Adj.Matrix,alpha,B0, Null){
            #cat(paste("iteration",j,"\n"))
         if(j > 1)
             B0 <- B1
-	  if(length(B0)>1)
+	  if(length(B0) > 1)
 	        duBs <- rowSums(Adj.Matrix[, B0])        
 	  if(length(B0)==1)
 		  duBs <- Adj.Matrix[, B0]
         pB <- sum(degrees[B0])/sum(degrees) #probability of connection to B
         if(Null == "Binomial")
-            pvals <- pbinom(duBs,degrees,pB,lower.tail = FALSE)
+            pvals <- pbinom(duBs, degrees, pB, lower.tail = FALSE)
         if(Null == "Poisson")
-            pvals <- ppois(duBs,degrees*pB,lower.tail = FALSE)
-        pvals[degrees==0] <- 1
+            pvals <- ppois(duBs, degrees*pB, lower.tail = FALSE)
+        pvals[degrees == 0] <- 1
         #cat(paste0("length pvals is ",length(pvals),"; mean is ",round(mean(pvals),2),"\n"))
         pvals_bh <- pvals*n/rank(pvals)
         if(sum(pvals_bh <= alpha) == 0)
@@ -119,16 +132,16 @@ Main.Search = function(Adj.Matrix,alpha,B0, Null){
           #cat("B1 reached size 0 in Main.Search\n")
           break
         }
-        threshold <- max(pvals[pvals_bh<=alpha])
-        B1 <- which(pvals<=threshold)
-        if(length(B1) <1 ){break}
+        threshold <- max(pvals[pvals_bh <= alpha])
+        B1 <- which(pvals <= threshold)
+        if(length(B1) < 1 ){break}
     }
     Community <- B1
     if(j > 30){
         #cat("Main.Search failed to converge before 30 iterations\n")
         Community <- integer(0)
     }
-    return(list(Community = Community))
+    return(list(Community = Community, PValues = as.matrix(pvals_bh)))
 }
 
 

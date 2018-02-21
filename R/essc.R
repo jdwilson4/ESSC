@@ -1,5 +1,5 @@
 #' essc
-#' 
+#'
 #' Identify statistically significant communities in undirected networks
 #' @param Adj.Matrix Adjacency matrix of the network for which you'd like to find communities
 #' @param alpha False discovery rate. Value between 0 and 1 that sets an upper limit on the false discovery rate of the hypothesis testing procedure in ESSC

@@ -85,13 +85,20 @@ essc = function(Adj.Matrix, alpha, Null = c("Binomial", "Poisson"), Num.Samples 
     normalized_pvals <- pvals / tot.values
     
     if(length(Community) == 0){
+      binary <- NULL
       Community <- list(NULL)
       pvals <- NULL
     }
-        
+    if(length(Community) > 0){
+      #Creating a binary matrix indicating communities
+      binary <- matrix(rep(0, n*length(Community)), nrow = n)
+      for(i in 1:length(Community)){
+        binary[Community[[i]], i] <- 1
+      }
+    }
     
     return(list(Communities = Community, Background = Background, 
-                PValues = as.matrix(normalized_pvals)))
+                PValues = as.matrix(pvals), Indicator_Matrix = binary))
 }
 
 ###Single Search Function
@@ -141,12 +148,8 @@ Main.Search = function(Adj.Matrix,alpha,B0, Null){
         #cat("Main.Search failed to converge before 30 iterations\n")
         Community <- integer(0)
     }
-    #Creating a binary matrix indicating communities
-    binary <- matrix(rep(0, n*length(Community)), nrow = n)
-    for(i in 1:length(Community)){
-      binary[Community[[i]], i] <- 1
-    }
-    return(list(Community = Community, PValues = pvals_bh, Indicator_Matrix = binary))
+    
+    return(list(Community = Community, PValues = pvals_bh))
 }
 
 

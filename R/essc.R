@@ -141,7 +141,12 @@ Main.Search = function(Adj.Matrix,alpha,B0, Null){
         #cat("Main.Search failed to converge before 30 iterations\n")
         Community <- integer(0)
     }
-    return(list(Community = Community, PValues = pvals_bh))
+    #Creating a binary matrix indicating communities
+    binary <- matrix(rep(0, n*length(Community)), nrow = n)
+    for(i in 1:length(Community)){
+      binary[Community[[i]], i] <- 1
+    }
+    return(list(Community = Community, PValues = pvals_bh, Indicator_Matrix = binary))
 }
 
 
